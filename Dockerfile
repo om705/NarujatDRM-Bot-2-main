@@ -1,24 +1,35 @@
-FROM python:3.9.7-slim-buster
-WORKDIR .
+# 1. Base image thodi navi use karange (Buster di jagah nawa version)
+FROM python:3.9-slim
+
+WORKDIR /app
 COPY . .
 
-RUN apt-get update
-RUN apt-get update -y
-RUN apt-get install -y build-essential
-RUN apt -y install curl
-RUN apt-get -y install git
-RUN git clone https://github.com/axiomatic-systems/Bento4.git && \
-cd Bento4 &&\
-apt-get -y install cmake && \
-mkdir cmakebuild && \ 
-cd cmakebuild/ && \
-cmake -DCMAKE_BUILD_TYPE=Release .. &&\
-make &&\ 
-make install
-RUN apt-get install -y aria2
-RUN apt -qq update && apt -qq install -y git wget pv jq python3-dev ffmpeg mediainfo
-RUN apt install ffmpeg
-RUN pip3 install -r requirements.txt
-CMD ["sh", "start.sh"]
+# 2. Saare zaroori tools ikko vaari install karange (Error ton bachan layi desi trick)
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    build-essential \
+    curl \
+    git \
+    cmake \
+    aria2 \
+    wget \
+    pv \
+    jq \
+    python3-dev \
+    ffmpeg \
+    mediainfo \
+    && rm -rf /var/lib/apt/lists/*
 
-#!git clone https://github.com/axiomatic-systems/Bento4.git && cd Bento4 && apt-get -y install cmake && mkdir cmakebuild && cd cmakebuild/ && cmake -DCMAKE_BUILD_TYPE=Release .. && make && make install
+# 3. Bento4 nu download te install karna
+RUN git clone https://github.com/axiomatic-systems/Bento4.git && \
+    cd Bento4 && \
+    mkdir cmakebuild && \
+    cd cmakebuild/ && \
+    cmake -DCMAKE_BUILD_TYPE=Release .. && \
+    make && \
+    make install
+
+# 4. Python requirements install karna
+RUN pip3 install --no-cache-dir -r requirements.txt
+
+# 5. App nu chalaun layi command
+CMD ["sh", "start.sh"]
